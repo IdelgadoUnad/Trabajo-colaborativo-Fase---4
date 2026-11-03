@@ -1,185 +1,113 @@
-PLAN DE TRABAJO COLABORATIVO – FASE 4
+Sistema Integral de Gestión de Clientes, Servicios y Reservas – Software FJ (Se aceptan sugerencias de nombre)
 
-Sistema Integral de Gestión de Clientes, Servicios y Reservas – Software FJ (Se reciben sigerencias de nombre)
+📌 Descripción del proyecto
 
-1. Organización del proyecto
+Este proyecto consiste en el desarrollo de un sistema integral para la empresa Software FJ, orientado a la gestión de clientes, servicios y reservas mediante una aplicación desarrollada en Python, utilizando programación orientada a objetos e interfaz gráfica con Tkinter.
 
-Compañeros, para el desarrollo de esta actividad ya contamos con un repositorio creado en GitHub, donde centralizaremos los archivos y avances del proyecto.
+El sistema permitirá administrar la información de los clientes, gestionar diferentes tipos de servicios y controlar las reservas, incluyendo sus respectivos estados, costos y procesos de confirmación y cancelación.
+
+El desarrollo se realiza como parte de la actividad colaborativa de la Fase 4, con el propósito de aplicar conceptos de programación orientada a objetos, herencia, abstracción, encapsulación, polimorfismo y manejo de excepciones.
+
+🎯 Objetivo del proyecto
+
+Desarrollar una aplicación funcional que permita gestionar clientes, servicios y reservas, aplicando los principios de programación orientada a objetos y mecanismos de control de errores para garantizar un funcionamiento organizado y confiable.
+
+🛠️ Tecnologías utilizadas
+
+Lenguaje de programación: Python.
+
+Interfaz gráfica: Tkinter.
+
+Entorno de desarrollo: Visual Studio Code.
+
+Control de versiones y trabajo colaborativo: GitHub.
+
+Almacenamiento: Objetos y listas en memoria.
+
+Registro de eventos y errores: Archivos de log.
+
+📂 Estructura del repositorio
+
+El proyecto se organizará mediante archivos independientes para facilitar el trabajo de cada integrante y un archivo principal para integrar el sistema completo.
+
+Archivo
+
+Descripción
+
+Sistema_de_Gestión-COMPILADO.py
+
+Archivo maestro donde se integrará el programa completo y funcional.
+
+entidades_clientes.py
+
+Desarrollo de las clases generales y gestión de clientes.
+
+servicios.py
+
+Desarrollo de los servicios y sus clases especializadas.
+
+reservas.py
+
+Administración y procesamiento de reservas.
+
+excepciones_logs.py
+
+Manejo de excepciones y registro de eventos y errores.
+
+interfaz.py
+
+Desarrollo de la interfaz gráfica con Tkinter.
+
+👥 Organización del trabajo colaborativo
+
+Cada integrante tendrá asignado un componente del sistema y trabajará inicialmente en su propio archivo.
+
+Los avances deberán publicarse en este repositorio para que todos los integrantes puedan consultar las modificaciones y mantenerse informados sobre el desarrollo.
+
+Una vez publicados, los aportes serán revisados e integrados progresivamente en el archivo maestro:
+
+Sistema_de_Gestión-COMPILADO.py
+
+Este archivo será la versión central del proyecto y permitirá consolidar los diferentes componentes hasta obtener una aplicación completa y funcional.
+
+📋 Acuerdos de desarrollo
+
+Para garantizar la compatibilidad entre los componentes, todos los integrantes deberán tener en cuenta los siguientes acuerdos:
+
+Respetar los nombres establecidos para las clases, métodos, atributos y parámetros.
+
+Mantener una estructura de programación común para facilitar la integración.
+
+Probar el código antes de publicarlo en GitHub.
+
+Actualizar los archivos cuando se realicen modificaciones.
+
+Informar en el grupo de trabajo los avances y cambios realizados.
+
+Consultar las versiones más recientes antes de continuar trabajando.
+
+Evitar modificar directamente el archivo maestro sin coordinación previa.
+
+Realizar pruebas después de cada integración.
+
+🧪 Pruebas del sistema
+
+Se realizarán pruebas individuales y de integración para verificar el funcionamiento de los componentes y comprobar el cumplimiento de los requisitos establecidos en la guía de actividades.
+
+Se contemplarán operaciones válidas e inválidas, manejo de excepciones, validación de datos, cálculos de costos y procesamiento de reservas.
+
+📚 Alcance académico
+
+Este desarrollo corresponde a un ejercicio académico de aplicación de los fundamentos de programación orientada a objetos. La información se administrará mediante objetos y listas en memoria, sin utilizar una base de datos. Los archivos se utilizarán para registrar eventos y errores.
+
+👨‍💻 Equipo de trabajo
+
+Proyecto: Software FJ
+Actividad: Fase 4 – Desarrollo colaborativo
+Programa académico: Ingeniería de Sistemas
+Institución: Universidad Nacional Abierta y a Distancia – UNAD
+Curso: Programación
+Código: 213023
 
 Repositorio oficial:
-
-https://github.com/IdelgadoUnad/Trabajo-colaborativo-Fase---4
-
-Todos los integrantes deberán tener acceso como colaboradores para poder consultar, publicar y actualizar sus respectivos archivos.
-
-2. Metodología de trabajo
-
-Para facilitar el desarrollo y permitir que cada integrante avance de manera independiente, trabajaremos con archivos separados por cada componente del sistema.
-
-Sin embargo, tendremos un archivo principal que será nuestra referencia para la integración de todo el proyecto:
-
-Archivo maestro: Sistema_de_Gestión-COMPILADO.py
-
-Consultar archivo maestro en GitHub
-
-Este archivo será utilizado para integrar y consolidar los desarrollos individuales hasta obtener un programa completo y funcional.
-
-¿Cómo trabajaremos?
-
-Cada integrante desarrollará su parte en el archivo correspondiente.
-
-Cada avance deberá probarse antes de publicarse.
-
-Una vez realizado un avance o modificación, el integrante deberá actualizar su archivo en GitHub.
-
-Posteriormente, deberá informar en el grupo de WhatsApp qué archivo actualizó y qué cambios realizó.
-
-Los demás integrantes podrán consultar los avances publicados para mantenerse al tanto del desarrollo.
-
-El líder revisará los aportes y realizará la integración correspondiente en el archivo maestro.
-
-Después de cada integración se realizarán pruebas para verificar que el programa siga funcionando correctamente.
-
-Importante: No debemos modificar directamente el archivo maestro sin coordinación previa. La integración se realizará de manera organizada para evitar conflictos y pérdida de información.
-
-3. Distribución de responsabilidades
-
-ESTUDIANTE 1 – Arquitectura y gestión de clientes
-
-Responsabilidades:
-
-Crear la clase abstracta general Entidad.
-
-Desarrollar la clase Cliente.
-
-Implementar atributos y métodos con encapsulación.
-
-Establecer validaciones para los datos de los clientes.
-
-Garantizar el manejo adecuado de la información personal.
-
-Archivo de trabajo: entidades_clientes.py
-
-ESTUDIANTE 2 – Gestión de servicios
-
-Responsabilidades:
-
-Crear la clase abstracta Servicio.
-
-Desarrollar las clases derivadas:
-
-ReservaSala.
-
-AlquilerEquipo.
-
-AsesoriaEspecializada.
-
-Implementar herencia y polimorfismo.
-
-Sobrescribir métodos para describir servicios, validar parámetros y calcular costos.
-
-Incorporar los mecanismos de cálculo de costos solicitados.
-
-Archivo de trabajo: servicios.py
-
-ESTUDIANTE 3 – Gestión de reservas
-
-Responsabilidades:
-
-Desarrollar la clase Reserva.
-
-Establecer la relación entre clientes y servicios.
-
-Implementar duración, costos y estados de las reservas.
-
-Crear los métodos de confirmación, cancelación y procesamiento.
-
-Incorporar el manejo de excepciones en las operaciones correspondientes.
-
-Archivo de trabajo: reservas.py
-
-ESTUDIANTE 4 – Excepciones y registro de eventos
-
-Responsabilidades:
-
-Crear las excepciones personalizadas.
-
-Implementar los mecanismos de manejo de errores.
-
-Demostrar el uso de try/except, try/except/else y try/except/finally.
-
-Implementar el encadenamiento de excepciones.
-
-Registrar los errores y eventos en archivos de log.
-
-Garantizar que la aplicación pueda continuar funcionando ante errores controlados.
-
-Archivo de trabajo: excepciones_logs.py
-
-ESTUDIANTE 5 – Interfaz gráfica e integración
-
-Responsabilidades:
-
-Desarrollar la interfaz gráfica utilizando Tkinter.
-
-Crear la ventana principal y los controles necesarios.
-
-Permitir la interacción con clientes, servicios y reservas.
-
-Conectar las opciones de la interfaz con las funcionalidades del sistema.
-
-Apoyar las pruebas de funcionamiento e integración.
-
-Archivo de trabajo: interfaz.py
-
-4. Reglas de desarrollo e integración
-
-Para evitar inconvenientes durante la integración, debemos tener en cuenta las siguientes reglas:
-
-Respetar los nombres acordados: las clases, métodos, atributos y parámetros deben conservar los nombres establecidos entre todos los integrantes.
-
-Mantener una estructura común: debemos utilizar los mismos criterios para definir las clases, sus relaciones y el funcionamiento de los métodos.
-
-Publicar los avances: cada modificación debe subirse al repositorio para que todos podamos consultar el estado actual del proyecto.
-
-Informar los cambios: después de actualizar un archivo, se debe comunicar en WhatsApp qué se modificó y qué funcionalidades se incorporaron.
-
-Probar antes de publicar: cada integrante debe verificar que su código funcione correctamente.
-
-Coordinar la integración: los cambios se incorporarán al archivo maestro después de su revisión.
-
-Evitar trabajar sobre versiones desactualizadas: antes de continuar, debemos consultar la última versión publicada en GitHub.
-
-5. Pruebas y cumplimiento de la guía
-
-Durante el desarrollo realizaremos pruebas progresivas para verificar el funcionamiento de cada componente y posteriormente del sistema completo.
-
-Debemos garantizar el cumplimiento de los requisitos de la actividad, incluyendo:
-
-Programación orientada a objetos.
-
-Abstracción, encapsulación, herencia y polimorfismo.
-
-Métodos sobrescritos y sobrecarga simulada mediante parámetros opcionales u otros mecanismos equivalentes en Python.
-
-Excepciones personalizadas y manejo de errores.
-
-Registro de eventos y errores mediante archivos.
-
-Mínimo 10 operaciones completas, combinando casos válidos e inválidos.
-
-Interfaz gráfica funcional.
-
-Código organizado y debidamente comentado.
-
-6. Compromiso del equipo
-
-La idea es que todos participemos activamente en el desarrollo, cumplamos con nuestras responsabilidades y mantengamos comunicación sobre los avances.
-
-Como líder del grupo, estaré pendiente de coordinar las actividades, revisar los aportes y mantener actualizado el archivo maestro.
-
-Si algún integrante presenta dificultades o no puede completar su parte, deberá comunicarlo oportunamente para reorganizar las actividades y evitar retrasos en la entrega.
-
-El objetivo es construir entre todos un único sistema funcional, integrando progresivamente el trabajo de cada integrante.
-
-¡Trabajemos de manera organizada, con comunicación y compromiso para sacar adelante este proyecto!
+GitHub – Trabajo colaborativo Fase 4
