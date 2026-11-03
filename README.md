@@ -1,6 +1,6 @@
 PLAN DE TRABAJO COLABORATIVO – FASE 4
 
-Sistema Integral de Gestión de Clientes, Servicios y Reservas – Software FJ
+Sistema Integral de Gestión de Clientes, Servicios y Reservas – Software FJ (Se reciben sigerencias de nombre)
 
 1. Organización del proyecto
 
