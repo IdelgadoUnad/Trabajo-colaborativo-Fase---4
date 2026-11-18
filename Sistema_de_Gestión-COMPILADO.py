@@ -1,45 +1,69 @@
+# ==========================================================
+# PROYECTO: SOFTWARE FJ
+# SISTEMA INTEGRAL DE GESTION DE CLIENTES, SERVICIOS Y RESERVAS
+#
+# ARCHIVO: Sistema_de_Gestión-COMPILADO.py
+#
+# INTEGRANTES Y RESPONSABILIDADES:
+# - FELIPE (Estudiante 1): Arquitectura y gestión de clientes
+# - MAICOL (Estudiante 2): Gestión de servicios
+# - MAICOL (Estudiante 3): Gestión de reservas (módulo reservas.py)
+# - FELIPE (Estudiante 4): Excepciones y registro de eventos (módulo excepciones_logs.py)
+# - IVAN DELGADO (Estudiante 5): Interfaz gráfica e integración
+#
+# FECHA DE INTEGRACIÓN: Fase 4 - Trabajo Colaborativo
+#
+# NOTAS DE INTEGRACIÓN:
+# - Se respetó el código original de cada compañero.
+# - Se unificó la configuración de logs en un solo archivo.
+# - Se integró el módulo de Reservas en la interfaz gráfica.
+# - Se añadió simulación de 10 operaciones al final del archivo.
+# - Cualquier cambio respecto al código original está comentado
+#   con la etiqueta [INTEGRACION].
+# ==========================================================
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 from abc import ABC, abstractmethod
 import re
 import logging
-
-
-# ==========================================================
-# PROYECTO: SOFTWARE FJ
-# SISTEMA INTEGRAL DE GESTION DE CLIENTES Y SERVICIOS
-#
-# ARCHIVO: Sistema_de_Gestión-COMPILADO.py
-#
-# INTEGRANTES:
-# FELIPE - ESTUDIANTE 1: ARQUITECTURA Y GESTION DE CLIENTES
-# MAICOL - ESTUDIANTE 2: GESTION DE SERVICIOS
-# IVAN DELGADO - ESTUDIANTE 5: INTERFAZ GRAFICA E INTEGRACION
-#
-# NOTA:
-# El modulo de RESERVAS (Estudiante 3) y el modulo de
-# EXCEPCIONES Y LOGS (Estudiante 4) se integraran cuando
-# sus desarrollos sean entregados. La estructura visual y
-# los puntos de integracion ya se encuentran preparados.
-# ==========================================================
-
+import os
 
 # ==========================================================
-# CONFIGURACION DEL SISTEMA DE LOGS
-# Entregada junto con el modulo de Servicios (Maicol).
-# Se conserva tal cual para su uso transversal en el sistema.
+# CONFIGURACION UNIFICADA DEL SISTEMA DE LOGS
+# [INTEGRACION] Se unificaron las configuraciones de servicios.py
+# y excepciones_logs.py en una sola, usando el archivo 'registro_eventos.log'
+# para mantener consistencia con el código de Maicol (Estudiante 2).
 # ==========================================================
+log_filename = 'registro_eventos.log'
+
+# Limpiamos manejadores anteriores para evitar duplicación
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
 logging.basicConfig(
-    filename='registro_eventos.log',
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename, encoding='utf-8'),
+        logging.StreamHandler()
+    ]
 )
-logger = logging.getLogger("ModuloServicios")
+
+# Loggers por módulo (respetando la nomenclatura de cada compañero)
+logger_clientes = logging.getLogger("ModuloClientes")
+logger_servicios = logging.getLogger("ModuloServicios")
+logger_reservas = logging.getLogger("ModuloReservas")
+logger_sistema = logging.getLogger("SistemaFJ")
+
+logging.info("Sistema de registro de logs configurado exitosamente.")
 
 
 # ==========================================================
 # ESTUDIANTE 1 - FELIPE
 # MODULO DE GESTION DE CLIENTES
+# Código tomado de: entidades_clientes.py
+# [INTEGRACION] Se mantiene intacto el código entregado en github.
 # ==========================================================
 
 # ==========================================
@@ -169,6 +193,8 @@ class Cliente(Entidad):
 # ==========================================================
 # ESTUDIANTE 2 - MAICOL
 # MODULO DE GESTION DE SERVICIOS
+# Código tomado de: servicios.py
+# [INTEGRACION] Se mantiene intacto el código entregado en github.
 # ==========================================================
 
 # 1. EXCEPCIONES PERSONALIZADAS
@@ -246,7 +272,7 @@ class ReservaSala(Servicio):
             if self._tarifa_base < 0:
                 raise ValidacionParametroError("La tarifa base no puede ser negativa.")
         except ValidacionParametroError as e:
-            logger.error(f"Error de validación al crear ReservaSala '{self._nombre}': {e}")
+            logger_servicios.error(f"Error de validación al crear ReservaSala '{self._nombre}': {e}")
             raise  # Relanzamos para que el sistema lo maneje arriba
 
     def describir_servicio(self) -> str:
@@ -273,19 +299,19 @@ class ReservaSala(Servicio):
                 costo_final *= 1.19  # IVA del 19%
 
         except CalculoCostoError as e:
-            logger.error(f"Inconsistencia calculando costo en ReservaSala: {e}")
+            logger_servicios.error(f"Inconsistencia calculando costo en ReservaSala: {e}")
             raise
         except Exception as e:
-            logger.critical(f"Fallo no previsto: {e}")
+            logger_servicios.critical(f"Fallo no previsto: {e}")
             # Encadenamiento de excepciones
             raise CalculoCostoError("Fallo interno al procesar cálculo de Sala.") from e
         else:
             # Si TODO sale bien en el try, entra al else
-            logger.info(f"Cálculo exitoso para {self.nombre}: ${costo_final}")
+            logger_servicios.info(f"Cálculo exitoso para {self.nombre}: ${costo_final}")
             return round(costo_final, 2)
         finally:
             # Se ejecuta siempre (haya error o no), ideal para auditar
-            logger.debug(f"Operación calcular_costo finalizada para {self.id_servicio}.")
+            logger_servicios.debug(f"Operación calcular_costo finalizada para {self.id_servicio}.")
 
 
 class AlquilerEquipo(Servicio):
@@ -295,7 +321,7 @@ class AlquilerEquipo(Servicio):
 
     def validar_parametros(self):
         if not self._nombre.strip():
-            logger.error("Nombre de equipo vacío.")
+            logger_servicios.error("Nombre de equipo vacío.")
             raise ValidacionParametroError("El nombre del equipo no puede estar vacío.")
 
     def describir_servicio(self) -> str:
@@ -323,7 +349,7 @@ class AlquilerEquipo(Servicio):
             return round(costo_final, 2)
 
         except Exception as e:
-            logger.error(f"Error en AlquilerEquipo: {e}")
+            logger_servicios.error(f"Error en AlquilerEquipo: {e}")
             raise
 
 
@@ -336,7 +362,7 @@ class AsesoriaEspecializada(Servicio):
         niveles_validos = ['junior', 'senior', 'master']
         if self._nivel_experto not in niveles_validos:
             msg = f"Nivel '{self._nivel_experto}' inválido. Debe ser: {niveles_validos}"
-            logger.error(msg)
+            logger_servicios.error(msg)
             raise ValidacionParametroError(msg)
 
     def describir_servicio(self) -> str:
@@ -362,13 +388,226 @@ class AsesoriaEspecializada(Servicio):
             return round(costo_final, 2)
 
         except CalculoCostoError as e:
-            logger.error(e)
+            logger_servicios.error(e)
             raise
+
+
+# ==========================================================
+# ESTUDIANTE 3 (MAICOL) - GESTION DE RESERVAS
+# MODULO DE GESTION DE RESERVAS
+# Código tomado de: reservas.py
+# [INTEGRACION] Se mantiene intacto el código entregado en github.
+# ==========================================================
+
+# 1. EXCEPCIONES PERSONALIZADAS DE RESERVA
+class ReservaError(Exception):
+    """Clase base para errores generales de reservas."""
+    pass
+
+
+class EstadoReservaError(ReservaError):
+    """Lanzada cuando se intenta una operación no permitida para el estado actual."""
+    pass
+
+
+class DatosReservaError(ReservaError):
+    """Lanzada cuando los datos de la reserva son inválidos o están incompletos."""
+    pass
+
+
+# 2. CLASE RESERVA
+class Reserva:
+    def __init__(self, id_reserva: str, cliente, servicio: Servicio, duracion: int):
+        # Encapsulación estricta
+        self._id_reserva = id_reserva
+        self._cliente = cliente  # Se asume que el sistema le pasará un objeto Cliente
+        self._servicio = servicio  # Objeto Servicio (Sala, Equipo o Asesoría)
+        self._duracion = duracion
+        self._estado = "Pendiente"  # Estados: Pendiente, Confirmada, Cancelada, Procesada
+
+        self._validar_datos_iniciales()
+
+    def _validar_datos_iniciales(self):
+        """Valida que los objetos y datos necesarios existan antes de crear la reserva."""
+        try:
+            if not self._cliente or not self._servicio:
+                raise DatosReservaError("La reserva debe tener un cliente y un servicio válidos asignados.")
+            if not isinstance(self._duracion, int) or self._duracion <= 0:
+                raise DatosReservaError("La duración del servicio debe ser un número entero mayor a cero.")
+        except DatosReservaError as e:
+            logger_reservas.error(f"Fallo al crear reserva {self._id_reserva}: {e}")
+            raise  # Relanzar para que el programa principal lo capture
+
+    # Propiedades (Getters)
+    @property
+    def estado(self):
+        return self._estado
+
+    @property
+    def id_reserva(self):
+        return self._id_reserva
+
+    @property
+    def cliente(self):
+        return self._cliente
+
+    @property
+    def servicio(self):
+        return self._servicio
+
+    @property
+    def duracion(self):
+        return self._duracion
+
+    def confirmar(self):
+        """Cambia el estado a Confirmada validando que no esté cancelada."""
+        try:
+            if self._estado == "Cancelada":
+                raise EstadoReservaError("No se puede confirmar una reserva que ya fue cancelada.")
+            if self._estado == "Confirmada":
+                raise EstadoReservaError("La reserva ya se encuentra confirmada.")
+
+            self._estado = "Confirmada"
+            logger_reservas.info(f"Reserva {self._id_reserva} confirmada exitosamente.")
+
+        except EstadoReservaError as e:
+            logger_reservas.warning(f"Intento inválido de confirmación en reserva {self._id_reserva}: {e}")
+            raise
+
+    def cancelar(self):
+        """Permite cancelar la reserva siempre y cuando no se haya cobrado/procesado."""
+        try:
+            if self._estado == "Procesada":
+                raise EstadoReservaError("No se puede cancelar una reserva que ya fue procesada y facturada.")
+
+            self._estado = "Cancelada"
+            logger_reservas.info(f"Reserva {self._id_reserva} cancelada a petición.")
+
+        except EstadoReservaError as e:
+            logger_reservas.warning(f"Intento inválido de cancelación en reserva {self._id_reserva}: {e}")
+            raise
+
+    def procesar_reserva(self, aplicar_impuesto: bool = True, porcentaje_descuento: float = 0.0) -> float:
+        """
+        Procesa el cobro interactuando con el Servicio.
+        Implementa el manejo riguroso de excepciones (try/except/else/finally)
+        exigido en la rúbrica del proyecto.
+        """
+        costo_total = 0.0
+        try:
+            # 1. Validar estado
+            if self._estado != "Confirmada":
+                raise EstadoReservaError(f"Solo se pueden procesar reservas Confirmadas. Estado actual: {self._estado}")
+
+            # 2. Polimorfismo: Delegamos el cálculo al método sobrecargado de tu clase Servicio
+            costo_total = self._servicio.calcular_costo(
+                self._duracion,
+                aplicar_impuesto=aplicar_impuesto,
+                porcentaje_descuento=porcentaje_descuento
+            )
+
+        except EstadoReservaError as e:
+            logger_reservas.error(f"Error de estado al procesar reserva {self._id_reserva}: {e}")
+            raise
+
+        except ServicioError as e:
+            logger_reservas.error(f"El servicio rechazó el cálculo de costo para la reserva {self._id_reserva}: {e}")
+            # Encadenamiento de excepciones: Convertimos un error de Servicio en uno de Reserva
+            raise ReservaError("No se pudo procesar la reserva por una inconsistencia en el servicio.") from e
+
+        except Exception as e:
+            logger_reservas.critical(f"Error crítico e inesperado procesando reserva {self._id_reserva}: {e}")
+            raise ReservaError("Fallo interno grave durante el procesamiento.") from e
+
+        else:
+            # Se ejecuta SOLO si el bloque 'try' funcionó sin errores
+            self._estado = "Procesada"
+            logger_reservas.info(f"Reserva {self._id_reserva} procesada con éxito. Costo total: ${costo_total}")
+            return costo_total
+
+        finally:
+            # Se ejecuta SIEMPRE, ideal para cerrar archivos o dejar rastros de auditoría
+            logger_reservas.debug(f"Finaliza el intento de procesamiento para la reserva {self._id_reserva}.")
+
+
+# ==========================================================
+# ESTUDIANTE 4 (FELIPE) - EXCEPCIONES Y REGISTRO DE EVENTOS
+# MODULO DE EXCEPCIONES Y REGISTRO DE EVENTOS
+# Código tomado de: Excepciones y registro de enventos.py
+# [INTEGRACION] Se integran las excepciones personalizadas y
+# la función de demostración de manejo avanzado de errores entregado en el mismo archivo.
+# ==========================================================
+
+class DatabaseConnectionError(Exception):
+    """Se lanza cuando hay un fallo crítico de conexión con la base de datos."""
+    pass
+
+
+class ProcessExecutionError(Exception):
+    """Excepción de alto nivel para fallos generales durante el procesamiento de datos."""
+    pass
+
+
+def conectar_servidor():
+    """Simula un error de bajo nivel (por ejemplo, del sistema operativo o socket de red)."""
+    raise TimeoutError("Tiempo de espera agotado al conectar al puerto 3306 del servidor remoto.")
+
+
+def iniciar_proceso_usuario(usuario_id):
+    """Demuestra el encadenamiento de excepciones."""
+    try:
+        logger_sistema.info(f"Iniciando proceso interno para el usuario {usuario_id}...")
+        conectar_servidor()
+    except TimeoutError as err_origen:
+        logger_sistema.warning("Error de red detectado a bajo nivel. Aplicando encadenamiento de excepciones...")
+        # Lanzamos la excepción de alto nivel encadenando el error origen con 'from'
+        raise ProcessExecutionError(
+            f"No se pudo completar la transacción para el usuario {usuario_id} debido a una falla en la infraestructura."
+        ) from err_origen
+
+
+def realizar_operacion_segura(usuario_id, simular_error=True):
+    """
+    Demuestra el manejo avanzado de errores (try/except/else/finally).
+    [INTEGRACION] Adaptada para usar el logger unificado del sistema.
+    """
+    conexion_activa = False
+    try:
+        logger_sistema.info("--- [TRY] Iniciando transacción segura ---")
+        conexion_activa = True
+
+        if simular_error:
+            iniciar_proceso_usuario(usuario_id)
+        else:
+            logger_sistema.info(f"Procesamiento de datos completado con éxito para el usuario {usuario_id}.")
+
+    except ProcessExecutionError as e:
+        # Capturamos la excepción personalizada y recuperamos su causa original
+        logger_sistema.error(f"[EXCEPT] Error controlado atrapado: {e}")
+        logger_sistema.error(f"[EXCEPT] Causa original identificada: {e.__cause__}")
+
+    except Exception as e:
+        # Captura genérica de respaldo de seguridad ante errores imprevistos
+        logger_sistema.error(f"[EXCEPT Genérico] Ocurrió una anomalía inesperada: {e}")
+
+    else:
+        # Este bloque se ejecuta ÚNICAMENTE si no se lanzó ninguna excepción dentro del bloque 'try'
+        logger_sistema.info("[ELSE] ¡Transacción finalizada exitosamente sin reportar inconvenientes!")
+
+    finally:
+        # Se ejecuta de forma obligatoria para realizar la liberación segura de recursos
+        if conexion_activa:
+            logger_sistema.info("[FINALLY] Limpiando recursos y cerrando conexiones de socket activas de forma segura.")
+        else:
+            logger_sistema.info("[FINALLY] Finalizando flujo de ejecución sin recursos pendientes por liberar.")
 
 
 # ==========================================================
 # ESTUDIANTE 5 - IVAN DELGADO
 # INTERFAZ GRAFICA E INTEGRACION
+# Código tomado de: interfaz.py
+# [INTEGRACION] Se integran las funcionalidades de Reservas
+# y se conectan los botones antes provisionales.
 # ==========================================================
 
 class InterfazSoftwareFJ(tk.Tk):
@@ -408,8 +647,14 @@ class InterfazSoftwareFJ(tk.Tk):
             ),
         }
 
+        # [INTEGRACION] Reservas registradas (Estudiante 3 - Maicol)
+        self.reservas = {}
+
         # Documento del cliente seleccionado para modificarlo
         self.documento_seleccionado = None
+
+        # [INTEGRACION] ID de la reserva seleccionada para operar sobre ella
+        self.reserva_seleccionada = None
 
         # Configuracion general de la ventana
         self.title("Software FJ - Sistema Integral de Gestion")
@@ -435,7 +680,7 @@ class InterfazSoftwareFJ(tk.Tk):
         self.mostrar_inicio()
 
     # ======================================================
-    # ESTUDIANTE 5 - ESTRUCTURA GENERAL DE LA APLICACION
+    # ESTUDIANTE 5 (IVAN DELGADO) - ESTRUCTURA GENERAL DE LA APLICACION
     # ======================================================
 
     def crear_contenedor_principal(self):
@@ -560,7 +805,7 @@ class InterfazSoftwareFJ(tk.Tk):
         )
 
     # ======================================================
-    # ESTUDIANTE 5 - FUNCIONES AUXILIARES DE LA INTERFAZ
+    # ESTUDIANTE 5 (IVAN DELGADO) - FUNCIONES AUXILIARES DE LA INTERFAZ
     # ======================================================
 
     def limpiar_area(self):
@@ -699,7 +944,7 @@ class InterfazSoftwareFJ(tk.Tk):
         return entrada
 
     # ======================================================
-    # ESTUDIANTE 5 - PANTALLA PRINCIPAL
+    # ESTUDIANTE 5 (IVAN DELGADO) - PANTALLA PRINCIPAL
     # ======================================================
 
     def mostrar_inicio(self):
@@ -819,7 +1064,7 @@ class InterfazSoftwareFJ(tk.Tk):
         ).pack(anchor="w", padx=18, pady=(0, 18))
 
     # ======================================================
-    # ESTUDIANTE 5 - INTERFAZ E INTEGRACION CON FELIPE
+    # ESTUDIANTE 5 (IVAN DELGADO) - INTERFAZ E INTEGRACION CON FELIPE
     # MODULO DE GESTION DE CLIENTES
     # ======================================================
 
@@ -834,7 +1079,6 @@ class InterfazSoftwareFJ(tk.Tk):
 
         # --------------------------------------------------
         # INTEGRACION CON FELIPE - ESTUDIANTE 1
-        #
         # Se utiliza la clase Cliente desarrollada por Felipe.
         # La interfaz no modifica sus validaciones ni métodos.
         # --------------------------------------------------
@@ -1141,7 +1385,7 @@ class InterfazSoftwareFJ(tk.Tk):
         )
 
     # ======================================================
-    # ESTUDIANTE 5 - INTERFAZ E INTEGRACION CON MAICOL
+    # ESTUDIANTE 5 (IVAN DELGADO) - INTERFAZ E INTEGRACION CON MAICOL
     # MODULO DE GESTION DE SERVICIOS
     # ======================================================
 
@@ -1465,8 +1709,9 @@ class InterfazSoftwareFJ(tk.Tk):
             self.manejar_error(error)
 
     # ======================================================
-    # ESTUDIANTE 3 (SIN ASIGNAR)
-    # MODULO DE GESTION DE RESERVAS
+    # ESTUDIANTE 5 (IVAN DELGADO) - INTERFAZ E INTEGRACION DEL MODULO DE RESERVAS (MAICOL)
+    # [INTEGRACION] Se reemplazan los botones provisionales por
+    # la lógica real conectada a la clase Reserva.
     # ======================================================
 
     def mostrar_reservas(self):
@@ -1479,10 +1724,11 @@ class InterfazSoftwareFJ(tk.Tk):
         )
 
         # --------------------------------------------------
-        # PUNTO DE INTEGRACION - ESTUDIANTE 3 (SIN ASIGNAR)
+        # INTEGRACION CON EL MODULO DE RESERVAS (MAICOL)
         #
-        # Aqui se conectara la clase Reserva cuando sea
-        # entregada. Los botones ya se encuentran preparados.
+        # Se utiliza la clase Reserva desarrollada por el
+        # Estudiante 3. La reserva relaciona un Cliente con
+        # un Servicio y permite confirmar, cancelar y procesar.
         # --------------------------------------------------
 
         # Formulario de reserva
@@ -1498,17 +1744,52 @@ class InterfazSoftwareFJ(tk.Tk):
 
         formulario.pack(fill="x", padx=35, pady=5)
 
-        # Campos visuales para la reserva
+        # Campo para el documento del cliente
         self.entrada_cliente_reserva = self.crear_campo(
             formulario, "Documento del cliente:", 0, 0
         )
 
-        self.entrada_servicio_reserva = self.crear_campo(
-            formulario, "Tipo de servicio:", 0, 1
+        # Selector de servicio para la reserva
+        bloque_servicio = tk.Frame(
+            formulario,
+            bg=self.color_fondo
         )
 
+        bloque_servicio.grid(
+            row=0, column=1,
+            padx=10, pady=7,
+            sticky="ew"
+        )
+
+        tk.Label(
+            bloque_servicio,
+            text="Servicio:",
+            font=("Arial", 9),
+            bg=self.color_fondo,
+            fg=self.color_texto
+        ).pack(anchor="w")
+
+        self.combo_servicio_reserva = ttk.Combobox(
+            bloque_servicio,
+            state="readonly",
+            font=("Arial", 10)
+        )
+
+        self.combo_servicio_reserva["values"] = [
+            f"{codigo} - {servicio.nombre}"
+            for codigo, servicio in self.servicios.items()
+        ]
+
+        self.combo_servicio_reserva.pack(
+            fill="x",
+            pady=(4, 0)
+        )
+
+        formulario.grid_columnconfigure(1, weight=1)
+
+        # Campo para la duración
         self.entrada_duracion_reserva = self.crear_campo(
-            formulario, "Duracion:", 1, 0
+            formulario, "Duracion (horas/dias):", 1, 0
         )
 
         # Botones de operaciones de reservas
@@ -1519,21 +1800,30 @@ class InterfazSoftwareFJ(tk.Tk):
 
         botones.pack(fill="x", padx=35, pady=12)
 
-        operaciones = [
+        # [INTEGRACION] Se conectan los botones a la lógica real
+        self.crear_boton_accion(
+            botones,
             "Crear reserva",
-            "Consultar reservas",
-            "Confirmar reserva",
-            "Cancelar reserva"
-        ]
+            self.crear_reserva
+        ).pack(side="left", padx=4)
 
-        for operacion in operaciones:
-            self.crear_boton_accion(
-                botones,
-                operacion,
-                lambda nombre=operacion: self.integracion_pendiente(
-                    f"Estudiante 3 - {nombre}"
-                )
-            ).pack(side="left", padx=4)
+        self.crear_boton_accion(
+            botones,
+            "Confirmar reserva",
+            self.confirmar_reserva
+        ).pack(side="left", padx=4)
+
+        self.crear_boton_accion(
+            botones,
+            "Cancelar reserva",
+            self.cancelar_reserva
+        ).pack(side="left", padx=4)
+
+        self.crear_boton_accion(
+            botones,
+            "Procesar reserva",
+            self.procesar_reserva
+        ).pack(side="left", padx=4)
 
         # Tabla de reservas
         tk.Label(
@@ -1562,31 +1852,374 @@ class InterfazSoftwareFJ(tk.Tk):
             ("N. Reserva", "Cliente", "Servicio", "Duracion", "Estado")
         )
 
+        # Al seleccionar una reserva se guarda su ID
+        self.tabla_reservas.bind(
+            "<<TreeviewSelect>>",
+            self.seleccionar_reserva
+        )
+
+        # Mostrar las reservas existentes
+        self.consultar_reservas()
+
+    def seleccionar_reserva(self, evento=None):
+        """[INTEGRACION] Guarda el ID de la reserva seleccionada."""
+        seleccion = self.tabla_reservas.selection()
+        if not seleccion:
+            self.reserva_seleccionada = None
+            return
+        valores = self.tabla_reservas.item(seleccion[0], "values")
+        self.reserva_seleccionada = valores[0]
+        self.barra_estado.config(
+            text=f"Reserva seleccionada: {self.reserva_seleccionada}"
+        )
+
+    def consultar_reservas(self):
+        """[INTEGRACION] Muestra las reservas en la tabla."""
+        for fila in self.tabla_reservas.get_children():
+            self.tabla_reservas.delete(fila)
+
+        for id_reserva, reserva in self.reservas.items():
+            self.tabla_reservas.insert(
+                "",
+                "end",
+                values=(
+                    id_reserva,
+                    reserva.cliente.nombre,
+                    reserva.servicio.nombre,
+                    reserva.duracion,
+                    reserva.estado
+                )
+            )
+
+        self.barra_estado.config(
+            text=f"Reservas registradas: {len(self.reservas)}"
+        )
+
+    def crear_reserva(self):
+        """[INTEGRACION] Crea una nueva reserva validando cliente y servicio."""
+        documento = self.entrada_cliente_reserva.get().strip()
+        seleccion_servicio = self.combo_servicio_reserva.get()
+        texto_duracion = self.entrada_duracion_reserva.get().strip()
+
+        try:
+            # Validar que el cliente exista
+            if documento not in self.clientes:
+                raise DatosReservaError(
+                    f"No existe un cliente con documento '{documento}'."
+                )
+
+            # Validar que se haya seleccionado un servicio
+            if not seleccion_servicio:
+                raise DatosReservaError(
+                    "Debe seleccionar un servicio para la reserva."
+                )
+
+            codigo_servicio = seleccion_servicio.split(" - ")[0]
+            servicio = self.servicios.get(codigo_servicio)
+            if servicio is None:
+                raise DatosReservaError(
+                    "El servicio seleccionado no es válido."
+                )
+
+            # Validar duración
+            try:
+                duracion = int(texto_duracion)
+            except ValueError:
+                raise DatosReservaError(
+                    "La duración debe ser un número entero."
+                )
+
+            cliente = self.clientes[documento]
+
+            # Generar ID único para la reserva
+            id_reserva = f"RES-{len(self.reservas) + 1:03d}"
+
+            # Crear la reserva usando la clase del Estudiante 3
+            nueva_reserva = Reserva(id_reserva, cliente, servicio, duracion)
+            self.reservas[id_reserva] = nueva_reserva
+
+            # Actualizar la tabla y limpiar campos
+            self.consultar_reservas()
+            self.entrada_cliente_reserva.delete(0, tk.END)
+            self.entrada_duracion_reserva.delete(0, tk.END)
+            self.combo_servicio_reserva.set("")
+
+            messagebox.showinfo(
+                "Reserva creada",
+                f"La reserva {id_reserva} se creó con estado '{nueva_reserva.estado}'."
+            )
+            logger_reservas.info(f"Reserva {id_reserva} creada para cliente {documento}")
+
+        except DatosReservaError as error:
+            logger_reservas.warning(f"Error al crear reserva: {error}")
+            messagebox.showerror("Error al crear reserva", str(error))
+        except Exception as error:
+            logger_reservas.error(f"Error inesperado al crear reserva: {error}")
+            self.manejar_error(error)
+
+    def confirmar_reserva(self):
+        """[INTEGRACION] Confirma la reserva seleccionada."""
+        if not self.reserva_seleccionada:
+            messagebox.showwarning(
+                "Selección requerida",
+                "Seleccione una reserva de la tabla para confirmar."
+            )
+            return
+
+        try:
+            reserva = self.reservas.get(self.reserva_seleccionada)
+            if reserva is None:
+                raise ReservaError("La reserva seleccionada no existe.")
+            reserva.confirmar()
+            self.consultar_reservas()
+            messagebox.showinfo(
+                "Reserva confirmada",
+                f"La reserva {self.reserva_seleccionada} fue confirmada."
+            )
+        except EstadoReservaError as error:
+            messagebox.showerror("Error de estado", str(error))
+        except Exception as error:
+            self.manejar_error(error)
+
+    def cancelar_reserva(self):
+        """[INTEGRACION] Cancela la reserva seleccionada."""
+        if not self.reserva_seleccionada:
+            messagebox.showwarning(
+                "Selección requerida",
+                "Seleccione una reserva de la tabla para cancelar."
+            )
+            return
+
+        try:
+            reserva = self.reservas.get(self.reserva_seleccionada)
+            if reserva is None:
+                raise ReservaError("La reserva seleccionada no existe.")
+            reserva.cancelar()
+            self.consultar_reservas()
+            messagebox.showinfo(
+                "Reserva cancelada",
+                f"La reserva {self.reserva_seleccionada} fue cancelada."
+            )
+        except EstadoReservaError as error:
+            messagebox.showerror("Error de estado", str(error))
+        except Exception as error:
+            self.manejar_error(error)
+
+    def procesar_reserva(self):
+        """[INTEGRACION] Procesa el cobro de la reserva seleccionada."""
+        if not self.reserva_seleccionada:
+            messagebox.showwarning(
+                "Selección requerida",
+                "Seleccione una reserva de la tabla para procesar."
+            )
+            return
+
+        try:
+            reserva = self.reservas.get(self.reserva_seleccionada)
+            if reserva is None:
+                raise ReservaError("La reserva seleccionada no existe.")
+            costo = reserva.procesar_reserva(aplicar_impuesto=True, porcentaje_descuento=0.0)
+            self.consultar_reservas()
+            messagebox.showinfo(
+                "Reserva procesada",
+                f"La reserva {self.reserva_seleccionada} fue procesada.\nCosto total: ${costo:,.2f}"
+            )
+        except EstadoReservaError as error:
+            messagebox.showerror("Error de estado", str(error))
+        except ReservaError as error:
+            messagebox.showerror("Error al procesar", str(error))
+        except Exception as error:
+            self.manejar_error(error)
+
     # ======================================================
-    # ESTUDIANTE 4 (SIN ASIGNAR)
-    # MANEJO DE EXCEPCIONES Y REGISTRO DE EVENTOS
+    # ESTUDIANTE 4 (FELIPE)- MANEJO DE ERRORES Y LOGS
+    # [INTEGRACION] Se conecta el manejo de errores al sistema de logs.
     # ======================================================
 
     def manejar_error(self, error):
-        # PUNTO DE INTEGRACION - ESTUDIANTE 4
-        # Se conectara con su sistema de logs cuando entregue.
-        logger.error(f"Error en la interfaz: {error}")
+        """
+        Punto de integración con el sistema de logs del Estudiante 4.
+        Registra el error y muestra un mensaje al usuario sin cerrar la aplicación.
+        """
+        logger_sistema.error(f"Error en la interfaz: {error}", exc_info=True)
         messagebox.showerror(
             "Error del sistema",
             str(error)
         )
 
-    # ======================================================
-    # ESTUDIANTE 5 - PUNTO PROVISIONAL DE INTEGRACION
-    # ======================================================
+# ======================================================
+# SIMULACIÓN DE 10 OPERACIONES COMPLETAS
+# [INTEGRACION] He realizado las pruebas de este bloque revisando que si
+# cumple con los reqerimientos que esta en la guia de la tardea
+# ======================================================
 
-    def integracion_pendiente(self, nombre_operacion):
-        # Metodo provisional mientras llegan los modulos faltantes
-        messagebox.showinfo(
-            "Integracion pendiente",
-            f"La operacion '{nombre_operacion}' "
-            "se habilitara cuando se integre su funcionalidad."
-        )
+def ejecutar_simulacion_operaciones():
+    """
+    Simula 10 operaciones completas sobre el sistema:
+    - Registros válidos e inválidos de clientes.
+    - Creación correcta e incorrecta de servicios.
+    - Reservas exitosas y fallidas.
+    - Operaciones de confirmación, cancelación y procesamiento.
+    """
+    print("\n" + "=" * 60)
+    print("SIMULACIÓN DE 10 OPERACIONES COMPLETAS - SOFTWARE FJ")
+    print("=" * 60 + "\n")
+
+    logger_sistema.info("=== INICIO DE SIMULACIÓN DE 10 OPERACIONES ===")
+
+    # Instanciar la interfaz para tener acceso a las colecciones
+    app = InterfazSoftwareFJ()
+    # Ocultar la ventana durante la simulación para no interferir
+    app.withdraw()
+
+    operacion_num = 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 1: Registro válido de cliente
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Registro VÁLIDO de cliente ---")
+    try:
+        cliente1 = Cliente("Juan Pérez", "12345678", "juan@example.com", "+573101234567")
+        app.clientes[cliente1.documento] = cliente1
+        print(f"✓ Cliente registrado: {cliente1}")
+        logger_sistema.info(f"Operación {operacion_num} exitosa: {cliente1}")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        logger_sistema.error(f"Operación {operacion_num} fallida: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 2: Registro inválido de cliente (nombre con números)
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Registro INVÁLIDO de cliente (nombre con números) ---")
+    try:
+        cliente_malo = Cliente("Juan123", "87654321", "malo@example.com", "3101234567")
+        print(f"✗ No se lanzó excepción (inesperado): {cliente_malo}")
+    except ValueError as e:
+        print(f"✓ Excepción controlada: {e}")
+        logger_sistema.warning(f"Operación {operacion_num} manejada correctamente: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 3: Registro inválido de cliente (documento muy corto)
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Registro INVÁLIDO de cliente (documento corto) ---")
+    try:
+        cliente_malo2 = Cliente("María López", "123", "maria@example.com", "3109876543")
+        print(f"✗ No se lanzó excepción: {cliente_malo2}")
+    except ValueError as e:
+        print(f"✓ Excepción controlada: {e}")
+        logger_sistema.warning(f"Operación {operacion_num} manejada correctamente: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 4: Creación válida de servicio (ReservaSala)
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Creación VÁLIDA de ReservaSala ---")
+    try:
+        sala = ReservaSala("SALA-TEST", "Sala de Pruebas", 40000, 15, True)
+        print(f"✓ Servicio creado: {sala.describir_servicio()}")
+        logger_sistema.info(f"Operación {operacion_num} exitosa: {sala.nombre}")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        logger_sistema.error(f"Operación {operacion_num} fallida: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 5: Creación inválida de servicio (capacidad negativa)
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Creación INVÁLIDA de ReservaSala (capacidad negativa) ---")
+    try:
+        sala_mala = ReservaSala("SALA-MAL", "Sala Mala", 40000, -5, False)
+        print(f"✗ No se lanzó excepción: {sala_mala}")
+    except ValidacionParametroError as e:
+        print(f"✓ Excepción controlada: {e}")
+        logger_sistema.warning(f"Operación {operacion_num} manejada correctamente: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 6: Cálculo de costo válido con descuento e IVA
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Cálculo VÁLIDO de costo con descuento e IVA ---")
+    try:
+        costo = sala.calcular_costo(3, aplicar_impuesto=True, porcentaje_descuento=10)
+        print(f"✓ Costo calculado: ${costo:,.2f}")
+        logger_sistema.info(f"Operación {operacion_num} exitosa: costo=${costo}")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        logger_sistema.error(f"Operación {operacion_num} fallida: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 7: Cálculo de costo inválido (asesoría con menos de 2 horas)
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Cálculo INVÁLIDO de costo (asesoría < 2 horas) ---")
+    try:
+        asesoria = AsesoriaEspecializada("ASE-TEST", "Asesoría Test", 60000, "senior")
+        costo_malo = asesoria.calcular_costo(1)  # Menos de 2 horas
+        print(f"✗ No se lanzó excepción: ${costo_malo}")
+    except CalculoCostoError as e:
+        print(f"✓ Excepción controlada: {e}")
+        logger_sistema.warning(f"Operación {operacion_num} manejada correctamente: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 8: Creación válida de reserva
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Creación VÁLIDA de Reserva ---")
+    try:
+        equipo = AlquilerEquipo("EQUIPO-TEST", "Equipo Test", 20000, False)
+        reserva1 = Reserva("RES-TEST-001", cliente1, equipo, 5)
+        print(f"✓ Reserva creada: {reserva1.id_reserva} - Estado: {reserva1.estado}")
+        logger_sistema.info(f"Operación {operacion_num} exitosa: reserva {reserva1.id_reserva}")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        logger_sistema.error(f"Operación {operacion_num} fallida: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 9: Confirmación y procesamiento de reserva
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Confirmación y PROCESAMIENTO de reserva ---")
+    try:
+        reserva1.confirmar()
+        print(f"✓ Reserva confirmada. Estado: {reserva1.estado}")
+        costo_reserva = reserva1.procesar_reserva(aplicar_impuesto=True)
+        print(f"✓ Reserva procesada. Costo: ${costo_reserva:,.2f} - Estado: {reserva1.estado}")
+        logger_sistema.info(f"Operación {operacion_num} exitosa: reserva procesada")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        logger_sistema.error(f"Operación {operacion_num} fallida: {e}")
+    operacion_num += 1
+
+    # ------------------------------------------------------------------
+    # OPERACIÓN 10: Intento inválido de cancelar reserva ya procesada
+    # ------------------------------------------------------------------
+    print(f"\n--- OPERACIÓN {operacion_num}: Cancelación INVÁLIDA de reserva procesada ---")
+    try:
+        reserva1.cancelar()
+        print(f"✗ No se lanzó excepción. Estado: {reserva1.estado}")
+    except EstadoReservaError as e:
+        print(f"✓ Excepción controlada: {e}")
+        logger_sistema.warning(f"Operación {operacion_num} manejada correctamente: {e}")
+
+    # ------------------------------------------------------------------
+    # Demostración del manejo avanzado de excepciones (Estudiante 4)
+    # ------------------------------------------------------------------
+    print(f"\n--- DEMOSTRACIÓN: Manejo avanzado de excepciones (try/except/else/finally) ---")
+    print("\n[Prueba A] Simulación de error controlado con encadenamiento:")
+    realizar_operacion_segura(101, simular_error=True)
+
+    print("\n[Prueba B] Simulación de flujo exitoso:")
+    realizar_operacion_segura(202, simular_error=False)
+
+    # Cerrar la ventana oculta
+    app.destroy()
+
+    print("\n" + "=" * 60)
+    print("SIMULACIÓN COMPLETADA - La aplicación continúa funcionando.")
+    print("=" * 60)
+    logger_sistema.info("=== FIN DE SIMULACIÓN DE 10 OPERACIONES ===")
 
 
 # ======================================================
@@ -1595,7 +2228,11 @@ class InterfazSoftwareFJ(tk.Tk):
 
 if __name__ == "__main__":
 
-    # Crear la aplicacion
+    # Ejecutar la simulación de operaciones primero
+    # (esto también demuestra que el sistema es robusto)
+    ejecutar_simulacion_operaciones()
+
+    # Crear la aplicación gráfica
     aplicacion = InterfazSoftwareFJ()
 
     # Iniciar el ciclo principal de Tkinter
