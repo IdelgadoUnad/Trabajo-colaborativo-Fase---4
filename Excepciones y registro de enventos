@@ -1,0 +1,105 @@
+import logging
+import os
+
+# =====================================================================
+# 1. CONFIGURACIÓN DEL SISTEMA DE REGISTRO DE EVENTOS (LOGS)
+# =====================================================================
+log_filename = 'app.log'
+
+# Limpiamos manejadores anteriores para evitar duplicación de salidas en entornos como Colab
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+# Configuramos para guardar en el archivo 'app.log' y a la vez imprimir en consola
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename, encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+
+logging.info("Sistema de registro de logs configurado exitosamente.")
+
+# =====================================================================
+# 2. CREACIÓN DE EXCEPCIONES PERSONALIZADAS
+# =====================================================================
+class DatabaseConnectionError(Exception):
+    """Se lanza cuando hay un fallo crítico de conexión con la base de datos."""
+    pass
+
+class ProcessExecutionError(Exception):
+    """Excepción de alto nivel para fallos generales durante el procesamiento de datos."""
+    pass
+
+# =====================================================================
+# 3. ENCADENAMIENTO DE EXCEPCIONES (Exception Chaining)
+# =====================================================================
+def conectar_servidor():
+    # Simulamos un error de bajo nivel (por ejemplo, del sistema operativo o socket de red)
+    raise TimeoutError("Tiempo de espera agotado al conectar al puerto 3306 del servidor remoto.")
+
+def iniciar_proceso_usuario(usuario_id):
+    try:
+        logging.info(f"Iniciando proceso interno para el usuario {usuario_id}...")
+        conectar_servidor()
+    except TimeoutError as err_origen:
+        logging.warning("Error de red detectado a bajo nivel. Aplicando encadenamiento de excepciones...")
+        # Lanzamos la excepción de alto nivel encadenando el error origen con 'from'
+        raise ProcessExecutionError(f"No se pudo completar la transacción para el usuario {usuario_id} debido a una falla en la infraestructura.") from err_origen
+
+# =====================================================================
+# 4. MANEJO DE ERRORES AVANZADO (try / except / else / finally)
+# =====================================================================
+def realizar_operacion_segura(usuario_id, simular_error=True):
+    conexion_activa = False
+    try:
+        logging.info("--- [TRY] Iniciando transacción segura ---")
+        conexion_activa = True
+        
+        if simular_error:
+            iniciar_proceso_usuario(usuario_id)
+        else: 
+            logging.info(f"Procesamiento de datos completado con éxito para el usuario {usuario_id}.")
+            
+    except ProcessExecutionError as e:
+        # Capturamos la excepción personalizada y recuperamos su causa original
+        logging.error(f"[EXCEPT] Error controlado atrapado: {e}")
+        logging.error(f"[EXCEPT] Causa original identificada: {e.__cause__}")
+        
+    except Exception as e:
+        # Captura genérica de respaldo de seguridad ante errores imprevistos
+        logging.error(f"[EXCEPT Genérico] Ocurrió una anomalía inesperada: {e}")
+        
+    else:
+        # Este bloque se ejecuta ÚNICAMENTE si no se lanzó ninguna excepción dentro del bloque 'try'
+        logging.info("[ELSE] ¡Transacción finalizada exitosamente sin reportar inconvenientes!")
+        
+    finally:
+        # Se ejecuta de forma obligatoria para realizar la liberación segura de recursos
+        if conexion_activa:
+            logging.info("[FINALLY] Limpiando recursos y cerrando conexiones de socket activas de forma segura.")
+        else:
+            logging.info("[FINALLY] Finalizando flujo de ejecución sin recursos pendientes por liberar.")
+
+# =====================================================================
+# 5. DEMOSTRACIÓN DE CONTINUIDAD Y PRUEBAS DEL FLUJO
+# =====================================================================
+print("=== PRUEBA 1: Simulación de error controlado (Con encadenamiento) ===")
+realizar_operacion_segura(101, simular_error=True)
+
+print("\n=== PRUEBA 2: Simulación de flujo exitoso (Garantiza que el software sigue vivo) ===")
+realizar_operacion_segura(202, simular_error=False)
+
+print("\n--- Las pruebas del sistema de excepciones concluyeron sin detener la aplicación ---\n")
+
+# =====================================================================
+# 6. VERIFICACIÓN Y LECTURA DE LOGS
+# =====================================================================
+if os.path.exists(log_filename):
+    print(f"=== CONTENIDO DEL ARCHIVO {log_filename} ===")
+    with open(log_filename, 'r', encoding='utf-8') as f:
+        print(f.read())
+else:
+    print(f"No se encontró el archivo {log_filename}.")
